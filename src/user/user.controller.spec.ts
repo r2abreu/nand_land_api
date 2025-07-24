@@ -84,7 +84,7 @@ describe("UserController", () => {
     });
   });
 
-  describe.only("remove", () => {
+  describe("remove", () => {
     it("should return the deleted user if found", async () => {
       const user: Partial<User> = { email: "foo@foo.com" };
       fakeUserService.delete?.mockResolvedValue(user);
