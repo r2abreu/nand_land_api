@@ -12,13 +12,14 @@ import {
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Serialize } from "../interceptors/serialize.interceptor";
-import { UserDto } from "./dtos/user.dto";
-import { UpdateUserDto } from "./dtos/udpate-user.dto";
+import { UserDto } from "./dto/user.dto";
+import { UpdateUserDto } from "./dto/udpate-user.dto";
 
 @Controller("user")
 @Serialize(UserDto)
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
+
   @Get(":id")
   async findOne(@Param("id") id: string) {
     const user = await this.userService.findOne(parseInt(id));

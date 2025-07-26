@@ -1,9 +1,9 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
-import { User } from "./user.entity";
+import { User } from "./entities/user.entity";
 import { NotFoundException } from "@nestjs/common";
-import { UpdateUserDto } from "./dtos/udpate-user.dto";
+import { UpdateUserDto } from "./dto/udpate-user.dto";
 import { describe, beforeEach, it, expect, vi, Mock } from "vitest";
 
 describe("UserController", () => {
@@ -75,7 +75,7 @@ describe("UserController", () => {
     });
 
     it("should throw a NotFound exception if user is not found", async () => {
-      fakeUserService.findOne?.mockResolvedValue(null);
+      fakeUserService.update?.mockResolvedValue(null);
 
       await expect(
         controller.update("foo", { email: "asd", password: "123" }),
