@@ -2,16 +2,25 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
+import { UserOrchestratorService } from "./user-orchestrator.service";
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private repo: Repository<User>) { }
+  constructor(
+    @InjectRepository(User) private repo: Repository<User>,
+    private userOrchestratorService: UserOrchestratorService,
+  ) {}
 
-  create(email: string, password: string) {
+  async create(email: string, password: string) {
     // TODO: Handle case where user already exists
     const user = this.repo.create({ email, password });
 
-    return this.repo.save(user);
+    const subscribedUser =
+      await this.userOrchestratorService.subscribeUserToCourse(user, 1);
+
+    if (!subscribedUser) return null;
+
+    return this.repo.save(subscribedUser);
   }
 
   async update(id: number, attrs: Partial<User>) {

@@ -4,12 +4,20 @@ import { UserService } from "./user.service";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { describe, beforeEach, it, expect, vi, Mock } from "vitest";
+import { UserOrchestratorService } from "./user-orchestrator.service";
 
 describe("UserService", () => {
   let service: UserService;
   let fakeUserRepo: Partial<Record<keyof Repository<User>, Mock>>;
+  let fakeUserOrchestratorService: Partial<
+    Record<keyof UserOrchestratorService, Mock>
+  >;
 
   beforeEach(async () => {
+    fakeUserOrchestratorService = {
+      subscribeUserToCourse: vi.fn(),
+    };
+
     fakeUserRepo = {
       create: vi.fn(),
       save: vi.fn(),
@@ -25,6 +33,10 @@ describe("UserService", () => {
           provide: getRepositoryToken(User),
           useValue: fakeUserRepo,
         },
+        {
+          provide: UserOrchestratorService,
+          useValue: fakeUserOrchestratorService,
+        },
       ],
     }).compile();
 
@@ -36,15 +48,22 @@ describe("UserService", () => {
       const user = {
         email: "foo",
         password: "bar",
+        course: { name: "Foo" },
       };
 
+      fakeUserOrchestratorService.subscribeUserToCourse?.mockResolvedValue(
+        user,
+      );
       fakeUserRepo.create?.mockResolvedValue(user);
       fakeUserRepo.save?.mockResolvedValue(user);
 
       const result = await service.create("foo", "asd");
+      expect(
+        fakeUserOrchestratorService.subscribeUserToCourse,
+      ).toHaveBeenCalled();
       expect(fakeUserRepo.create).toHaveBeenCalled();
       expect(fakeUserRepo.save).toHaveBeenCalled();
-      expect(result).toEqual(user);
+      expect(result).toStrictEqual(user);
     });
   });
 

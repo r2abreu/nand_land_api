@@ -5,7 +5,7 @@ import { Course } from "./entities/course.entity";
 
 @Injectable()
 export class CourseService {
-  constructor(@InjectRepository(Course) private repo: Repository<Course>) { }
+  constructor(@InjectRepository(Course) private repo: Repository<Course>) {}
 
   create(name: string, description: string) {
     const course = this.repo.create({ name, description });
