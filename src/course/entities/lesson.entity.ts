@@ -1,17 +1,18 @@
 import {
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  OneToMany,
   Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
   Relation,
   UpdateDateColumn,
 } from "typeorm";
-import { User } from "src/user/entities/user.entity";
 import { Section } from "./section.entity";
+import { UserProgress } from "./user-progress.entity";
 
 @Entity()
-export class Course {
+export class Lesson {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -21,11 +22,11 @@ export class Course {
   @Column()
   description: string;
 
-  @OneToMany(() => User, (user) => user.course)
-  users: Relation<User[]>;
+  @ManyToOne(() => Section, (section) => section.lessons)
+  section: Relation<Section>;
 
-  @OneToMany(() => User, (user) => user.course)
-  sections: Relation<Section[]>;
+  @OneToMany(() => UserProgress, (progress) => progress.lesson)
+  progress: Relation<UserProgress[]>;
 
   @CreateDateColumn()
   createdAt: Date;

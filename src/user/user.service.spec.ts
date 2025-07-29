@@ -47,7 +47,7 @@ describe("UserService", () => {
       expect(result).toStrictEqual(user);
     });
 
-    it.only("should return null if already exists", async () => {
+    it("should return null if already exists", async () => {
       fakeUserRepo.findOneBy?.mockResolvedValueOnce({
         email: "foo",
         password: "bar",

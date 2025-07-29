@@ -1,5 +1,14 @@
 import { Course } from "src/course/entities/course.entity";
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from "typeorm";
+import { UserProgress } from "src/course/entities/user-progress.entity";
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  UpdateDateColumn,
+  OneToMany,
+  Relation,
+} from "typeorm";
 import { CreateDateColumn } from "typeorm";
 
 @Entity()
@@ -16,9 +25,12 @@ export class User {
   @ManyToOne(() => Course, (course) => course.users)
   course: Course;
 
-  @CreateDateColumn({ name: "created_at" })
+  @OneToMany(() => UserProgress, (progress) => progress.user)
+  progress: Relation<UserProgress[]>;
+
+  @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn({ name: "updated_at" })
+  @UpdateDateColumn()
   updatedAt: Date;
 }
