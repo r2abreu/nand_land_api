@@ -4,12 +4,10 @@ import { User } from "./entities/user.entity";
 import { Course } from "src/course/entities/course.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserController } from "./user.controller";
-import { UserOrchestratorService } from "./user-orchestrator.service";
-import { CourseModule } from "src/course/course.module";
 
 @Module({
-  providers: [UserService, UserOrchestratorService],
-  imports: [TypeOrmModule.forFeature([User, Course]), CourseModule],
+  providers: [UserService],
+  imports: [TypeOrmModule.forFeature([User, Course])],
   controllers: [UserController],
   exports: [UserService],
 })

@@ -18,7 +18,7 @@ import { UpdateUserDto } from "./dto/udpate-user.dto";
 @Controller("user")
 @Serialize(UserDto)
 export class UserController {
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {}
 
   @Get(":id")
   async findOne(@Param("id") id: string) {
