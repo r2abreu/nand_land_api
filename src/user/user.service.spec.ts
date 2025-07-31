@@ -46,17 +46,6 @@ describe("UserService", () => {
       expect(fakeUserRepo.save).toHaveBeenCalled();
       expect(result).toStrictEqual(user);
     });
-
-    it("should return null if already exists", async () => {
-      fakeUserRepo.findOneBy?.mockResolvedValueOnce({
-        email: "foo",
-        password: "bar",
-      });
-
-      const result = await service.create("foo", "123");
-
-      expect(result).toBe(null);
-    });
   });
 
   describe("update", () => {

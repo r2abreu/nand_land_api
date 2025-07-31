@@ -8,11 +8,7 @@ export class UserService {
   constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
   async create(email: string, password: string) {
-    let user = await this.repo.findOneBy({ email });
-
-    if (user) return null;
-
-    user = this.repo.create({ email, password });
+    const user = this.repo.create({ email, password });
 
     return await this.repo.save(user);
   }
