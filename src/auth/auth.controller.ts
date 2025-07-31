@@ -5,32 +5,60 @@ import {
   UsePipes,
   ValidationPipe,
   ConflictException,
+  Inject,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { CreateUserDto } from "../user/dto/create-user.dto";
 import { UserService } from "../user/user.service";
-import { CourseService } from "src/course/course.service";
+import { Cryptable } from "src/interfaces/cryptable.interface";
+import { CRYPTABLE } from "./node-crypto/tokens";
+import { Serialize } from "src/interceptors/serialize.interceptor";
+import { UserDto } from "src/user/dto/user.dto";
 
 @Controller("auth")
+@Serialize(UserDto)
 export class AuthController {
   constructor(
     private userService: UserService,
-    private courseService: CourseService,
+    @Inject(CRYPTABLE) private cryptoService: Cryptable,
   ) {}
 
   @Post("signup")
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async signup(@Body() body: CreateUserDto) {
-    const course = await this.courseService.findOne(1);
+    const users = await this.userService.find(body.email);
 
-    if (!course) throw new NotFoundException("Course not found");
+    if (users.length) throw new ConflictException("User already exists");
 
-    const user = await this.userService.create(body.email, body.password);
+    const salt = this.cryptoService.randomBytes(8).toString("hex");
+    const hash = (
+      await this.cryptoService.encrypt(body.password, salt, 32)
+    ).toString("hex");
+    const encryptedPassword = `${salt}.${hash}`;
 
-    if (!user) throw new ConflictException("User already exists");
+    const user = await this.userService.create(body.email, encryptedPassword);
 
-    user.course = course;
-    // TODO: Serialize
+    return user;
+  }
+
+  @Post("signin")
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  async signin(@Body() body: CreateUserDto) {
+    const [user] = await this.userService.find(body.email);
+
+    if (!user) {
+      throw new NotFoundException("An user with that email doesn't exist");
+    }
+
+    const [salt, storedHash] = user.password.split(".");
+
+    const hash = (
+      await this.cryptoService.encrypt(body.password, salt, 32)
+    ).toString("hex");
+
+    if (storedHash !== hash) throw new UnauthorizedException();
+
     return user;
   }
 }
