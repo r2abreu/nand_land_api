@@ -8,6 +8,8 @@ import {
   Inject,
   NotFoundException,
   UnauthorizedException,
+  Session,
+  Get,
 } from "@nestjs/common";
 import { CreateUserDto } from "../user/dto/create-user.dto";
 import { UserService } from "../user/user.service";
@@ -15,6 +17,10 @@ import { Cryptable } from "src/interfaces/cryptable.interface";
 import { CRYPTABLE } from "./node-crypto/tokens";
 import { Serialize } from "src/interceptors/serialize.interceptor";
 import { UserDto } from "src/user/dto/user.dto";
+import { CurrentUser } from "./decorators/current-user.decorator";
+import { User } from "src/user/entities/user.entity";
+import { UseInterceptors } from "@nestjs/common";
+import { CurrentUserInterceptor } from "./current-user.interceptor.ts/current-user.interceptor";
 
 @Controller("auth")
 @Serialize(UserDto)
@@ -26,7 +32,7 @@ export class AuthController {
 
   @Post("signup")
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async signup(@Body() body: CreateUserDto) {
+  async signup(@Body() body: CreateUserDto, @Session() session: any) {
     const users = await this.userService.find(body.email);
 
     if (users.length) throw new ConflictException("User already exists");
@@ -38,6 +44,9 @@ export class AuthController {
     const encryptedPassword = `${salt}.${hash}`;
 
     const user = await this.userService.create(body.email, encryptedPassword);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    session.userId = user.id;
 
     return user;
   }
@@ -59,6 +68,12 @@ export class AuthController {
 
     if (storedHash !== hash) throw new UnauthorizedException();
 
+    return user;
+  }
+
+  @UseInterceptors(CurrentUserInterceptor)
+  @Get("whoami")
+  whoAmI(@CurrentUser() user: User) {
     return user;
   }
 }

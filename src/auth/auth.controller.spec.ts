@@ -45,7 +45,7 @@ describe("AuthController", () => {
       fakeUserService.find?.mockResolvedValue([true]);
 
       await expect(
-        controller.signup({ email: "foo", password: "123" }),
+        controller.signup({ email: "foo", password: "123" }, {}),
       ).rejects.toThrow(ConflictException);
       expect(fakeUserService.find).toHaveBeenCalled();
     });
@@ -62,7 +62,10 @@ describe("AuthController", () => {
       fakeCryptoService.randomBytes?.mockReturnValue(buffer);
       fakeCryptoService.encrypt?.mockResolvedValue(buffer);
 
-      const result = await controller.signup({ email: "foo", password: "123" });
+      const result = await controller.signup(
+        { email: "foo", password: "123" },
+        {},
+      );
 
       expect(fakeUserService.find).toHaveBeenCalled();
       expect(fakeCryptoService.randomBytes).toHaveBeenCalled();
