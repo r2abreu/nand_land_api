@@ -45,7 +45,10 @@ describe("AuthController", () => {
       fakeUserService.find?.mockResolvedValue([true]);
 
       await expect(
-        controller.signup({ email: "foo", password: "123" }, {}),
+        controller.signup(
+          { email: "foo", password: "123" },
+          { userId: null, currentUser: null },
+        ),
       ).rejects.toThrow(ConflictException);
       expect(fakeUserService.find).toHaveBeenCalled();
     });
@@ -64,7 +67,7 @@ describe("AuthController", () => {
 
       const result = await controller.signup(
         { email: "foo", password: "123" },
-        {},
+        { userId: null, currentUser: null },
       );
 
       expect(fakeUserService.find).toHaveBeenCalled();
@@ -91,7 +94,10 @@ describe("AuthController", () => {
       fakeUserService.find?.mockResolvedValue([user]);
       fakeCryptoService.encrypt?.mockResolvedValue("foo");
 
-      const result = await controller.signin(user);
+      const result = await controller.signin(user, {
+        userId: null,
+        currentUser: null,
+      });
 
       expect(result).toStrictEqual(user);
       expect(fakeUserService.find).toHaveBeenCalled();
@@ -107,9 +113,9 @@ describe("AuthController", () => {
       fakeUserService.find?.mockResolvedValue([user]);
       fakeCryptoService.encrypt?.mockResolvedValue("foox");
 
-      await expect(controller.signin(user)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        controller.signin(user, { userId: null, currentUser: null }),
+      ).rejects.toThrow(UnauthorizedException);
       expect(fakeUserService.find).toHaveBeenCalled();
       expect(fakeCryptoService.encrypt).toHaveBeenCalled();
     });
@@ -118,7 +124,10 @@ describe("AuthController", () => {
       fakeUserService.find?.mockResolvedValue([]);
 
       await expect(
-        controller.signin({ email: "foo", password: "bar" }),
+        controller.signin(
+          { email: "foo", password: "bar" },
+          { userId: null, currentUser: null },
+        ),
       ).rejects.toThrow(NotFoundException);
 
       expect(fakeUserService.find).toHaveBeenCalled();

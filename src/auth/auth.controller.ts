@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   Session,
   Get,
+  HttpCode,
 } from "@nestjs/common";
 import { CreateUserDto } from "../user/dto/create-user.dto";
 import { UserService } from "../user/user.service";
@@ -21,6 +22,12 @@ import { CurrentUser } from "./decorators/current-user.decorator";
 import { User } from "src/user/entities/user.entity";
 import { UseInterceptors } from "@nestjs/common";
 import { CurrentUserInterceptor } from "./current-user.interceptor.ts/current-user.interceptor";
+import type { Session as ExpressSession } from "express-session";
+
+interface UserSession extends Partial<ExpressSession> {
+  userId: number | null;
+  currentUser: User | null;
+}
 
 @Controller("auth")
 @Serialize(UserDto)
@@ -32,7 +39,7 @@ export class AuthController {
 
   @Post("signup")
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async signup(@Body() body: CreateUserDto, @Session() session: any) {
+  async signup(@Body() body: CreateUserDto, @Session() session: UserSession) {
     const users = await this.userService.find(body.email);
 
     if (users.length) throw new ConflictException("User already exists");
@@ -45,15 +52,15 @@ export class AuthController {
 
     const user = await this.userService.create(body.email, encryptedPassword);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     session.userId = user.id;
 
     return user;
   }
 
   @Post("signin")
+  @HttpCode(200)
   @UsePipes(new ValidationPipe({ whitelist: true }))
-  async signin(@Body() body: CreateUserDto) {
+  async signin(@Body() body: CreateUserDto, @Session() session: UserSession) {
     const [user] = await this.userService.find(body.email);
 
     if (!user) {
@@ -68,12 +75,23 @@ export class AuthController {
 
     if (storedHash !== hash) throw new UnauthorizedException();
 
+    session.userId = user.id;
+
     return user;
+  }
+
+  @Post("signout")
+  @HttpCode(200)
+  signout(@Session() session: UserSession) {
+    session.userId = null;
+    session.currentUser = null;
   }
 
   @UseInterceptors(CurrentUserInterceptor)
   @Get("whoami")
   whoAmI(@CurrentUser() user: User) {
+    if (!user) throw new NotFoundException();
+
     return user;
   }
 }
